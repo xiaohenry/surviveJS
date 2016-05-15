@@ -6,6 +6,27 @@ import NoteStore from '../stores/NoteStore';
 import LaneActions from '../actions/LaneActions';
 import Editable from './Editable.jsx';
 
+import {DropTarget} from 'react-dnd';
+import ItemTypes from '../constants/itemTypes';
+
+const noteTarget = {
+    hover(targetProps, monitor) {
+        const sourceProps = monitor.getItem();
+        const sourceId = sourceProps.id;
+
+        // only attach when dragging to empty lane
+        if(!targetProps.lane.notes.length) {
+          LaneActions.attachToLane({
+            laneId: targetProps.lane.id,
+            noteId: sourceId
+          });
+        }
+    }
+};
+
+@DropTarget(ItemTypes.NOTE, noteTarget, (connect) => ({
+    connectDropTarget: connect.dropTarget()
+}))
 export default class Lane extends React.Component {
     constructor(props) {
         super(props);
@@ -18,35 +39,35 @@ export default class Lane extends React.Component {
 
     }
     render() {
-        const {lane, ...props} = this.props; // extract lane and props from props passed from Parent (Lanes)
+        const {connectDropTarget, lane, ...props} = this.props; // extract lane and props from props passed from Parent (Lanes)
 
-        return (
+        return connectDropTarget(
             // use all the props passed in from the parent (key, lane, className)
             <div {...props}>
-                <div className="lane-header" onClick={this.activateLaneEdit}>
-                    <div className="lane-add-note">
-                        <button onClick={this.addNote}>+</button>
-                    </div>
-                    <Editable className="lane-name" editing={lane.editing} value={lane.name} onEdit={this.editName} />
-                    <div className="lane-delete">
-                        <button onClick={this.deleteLane}>x</button>
-                    </div>
-                </div>
+            <div className="lane-header" onClick={this.activateLaneEdit}>
+            <div className="lane-add-note">
+            <button onClick={this.addNote}>+</button>
+            </div>
+            <Editable className="lane-name" editing={lane.editing} value={lane.name} onEdit={this.editName} />
+            <div className="lane-delete">
+            <button onClick={this.deleteLane}>x</button>
+            </div>
+            </div>
 
-                <AltContainer
-                    stores={[NoteStore]}
-                    inject={{
-                        // Lanes have a notes field which is an arr of note ids. Lane uses this public method to fetch the
-                        // appropriate notes by passing in ids
-                        notes: () => NoteStore.getNotesByIds(lane.notes)
-                    }}>
+            <AltContainer
+            stores={[NoteStore]}
+            inject={{
+                // Lanes have a notes field which is an arr of note ids. Lane uses this public method to fetch the
+                // appropriate notes by passing in ids
+                notes: () => NoteStore.getNotesByIds(lane.notes)
+            }}>
 
-                    <Notes
-                        onValueClick={this.activateNoteEdit}
-                        onEdit={this.editNote}
-                        onDelete={this.deleteNote} />
+            <Notes
+            onValueClick={this.activateNoteEdit}
+            onEdit={this.editNote}
+            onDelete={this.deleteNote} />
 
-                </AltContainer>
+            </AltContainer>
 
             </div>
         );
