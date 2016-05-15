@@ -9,14 +9,24 @@ class NoteStore {
         // then, trigger appropriate logic at each method
 
         this.notes = [];
+
+        this.exportPublicMethods({
+            getNotesByIds: this.getNotesByIds.bind(this)
+        });
     }
+
     create(note) {
         const notes = this.notes;
+
         note.id = uuid.v4();
+
         this.setState({
             notes: notes.concat(note)
         });
+
+        return note;
     }
+
     update(updatedNote) {
         const notes = this.notes.map(note => {
             // return the update note in place of the original if found
@@ -34,11 +44,24 @@ class NoteStore {
             notes: notes
         });
     }
+
     delete(id) {
         this.setState({
             // delete the note with the matching id
             notes: this.notes.filter(note => note.id !== id)
         });
+    }
+
+    // Lanes have a notes field which is an arr of note ids. Lane uses this public method to fetch the
+    // appropriate notes by passing in ids
+    getNotesByIds(ids) {
+        // 1. Make sure we are operating on an array, or map will crash
+        return (ids || []).map(
+            // 2. Extract matching Notes, so we get the notes we want to show
+            id => this.notes.filter(note => note.id === id)
+            // 3. Filter out possible empty arrays (filter can return empty arr), and extract first item of each list
+            // We extract the first element b/c each filter call should only grab ONE note with the matching id.
+        ).filter(arr => arr.length).map(nonEmptyArr => nonEmptyArr[0]);
     }
 }
 

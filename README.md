@@ -1,2 +1,2 @@
 # surviveJS
-surviveJS React example
+surviveJS React example.
